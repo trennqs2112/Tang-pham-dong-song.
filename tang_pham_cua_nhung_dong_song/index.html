@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Tặng phẩm của những dòng sông</title>
+<style>
+:root{
+  --sand:#d7b56d;--earth:#75513a;--river:#237b86;--river-dark:#175963;
+  --cream:#fffaf0;--paper:#fffdf8;--ink:#30291f;--muted:#756b5d;
+  --line:#e7dcc7;--good:#246b46;--good-bg:#e8f5ec;--bad:#9b3d32;--bad-bg:#fff0ed;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;font-size:16px;line-height:1.55}
+button{font:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid #d18b2c;outline-offset:3px}
+.shell{max-width:1120px;margin:0 auto;padding:18px 16px 32px}
+.nav{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px}
+.nav button{border:1px solid var(--line);border-radius:999px;padding:10px 16px;background:#fff;color:var(--earth);font-weight:700}
+.nav button[aria-current="step"]{background:var(--river);border-color:var(--river);color:#fff}
+.panel{display:none;background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:clamp(16px,3vw,28px);box-shadow:0 8px 24px #49351a0c}
+.panel.active{display:block}
+.eyebrow{color:var(--river-dark);font-weight:800;letter-spacing:.07em;text-transform:uppercase;font-size:.78rem}
+h2{font-size:clamp(1.35rem,3vw,1.9rem);line-height:1.2;margin:5px 0 8px;color:var(--earth)}
+.intro{margin:0 0 20px;color:var(--muted)}
+.map-layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(245px,.8fr);gap:20px;align-items:start}
+.map-frame{padding:8px;background:#f5ebd3;border:1px solid var(--line);border-radius:14px}
+.map-frame img{display:block;width:100%;height:auto;max-height:650px;object-fit:contain;border-radius:8px}
+.map-caption{font-size:.82rem;color:var(--muted);margin:8px 2px 0}
+.region-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}
+.region-buttons button{border:2px solid #d8c6a2;background:#fff8e9;border-radius:12px;padding:12px 10px;color:var(--earth);font-weight:800}
+.region-buttons button[aria-pressed="true"]{border-color:var(--river);background:#e8f5f4;color:var(--river-dark)}
+.info-card{border-radius:14px;border:1px solid var(--line);background:#fff;padding:16px;min-height:190px}
+.info-card h3{margin:0 0 8px;color:var(--river-dark)}
+.info-card p{margin:0 0 10px}
+.info-card ul{padding-left:20px;margin:8px 0}
+.small-btn{border:1px solid var(--line);border-radius:9px;background:#fff;padding:8px 12px;color:var(--earth);font-weight:700}
+.note{font-size:.9rem;color:var(--muted)}
+.game-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.counter{background:#e7f3f2;color:var(--river-dark);border-radius:999px;padding:7px 12px;font-weight:800}
+.match-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.match-column h3{font-size:1rem;color:var(--earth);margin:0 0 9px}
+.cards{display:grid;gap:9px}
+.match-card{width:100%;text-align:left;min-height:62px;padding:12px 14px;border:2px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);transition:background .15s,border-color .15s}
+.match-card:hover:not(:disabled){border-color:var(--river)}
+.match-card.selected{border-color:var(--river);background:#eaf6f5}
+.match-card.matched{border-color:#a5cfb2;background:var(--good-bg);color:#20583b;cursor:default}
+.match-card:disabled{opacity:1}
+.feedback{margin:14px 0 0;padding:11px 13px;border-radius:10px;min-height:46px;background:#f6f0e4;color:var(--muted)}
+.feedback.good{background:var(--good-bg);color:var(--good)}
+.feedback.bad{background:var(--bad-bg);color:var(--bad)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.primary{border:0;background:var(--river);color:white;border-radius:10px;padding:11px 16px;font-weight:800}
+.primary:hover{background:var(--river-dark)}
+.secondary{border:1px solid var(--line);background:#fff;color:var(--earth);border-radius:10px;padding:10px 15px;font-weight:700}
+.question{font-size:1.12rem;font-weight:750;margin:16px 0}
+.options{display:grid;gap:10px}
+.option{display:flex;align-items:flex-start;gap:10px;padding:13px;border:2px solid var(--line);border-radius:12px;background:#fff;cursor:pointer}
+.option:has(input:checked){border-color:var(--river);background:#edf7f6}
+.option input{margin-top:5px;accent-color:var(--river);flex:0 0 auto}
+.conclusion{display:none;margin-top:16px;padding:16px;border-radius:12px;background:#f5ecd5;border-left:5px solid var(--sand)}
+.conclusion.show{display:block}
+.conclusion strong{display:block;color:var(--earth);margin-bottom:4px}
+.footer{font-size:.82rem;color:var(--muted);text-align:center;margin:18px 0 0}
+@media(max-width:760px){.map-layout{grid-template-columns:1fr}.map-frame img{max-height:none}.match-grid{grid-template-columns:1fr}.nav button{flex:1 1 100%;text-align:left}.shell{padding:12px 10px 24px}.panel{border-radius:14px}}
+</style>
+</head>
+<body>
+<main class="shell">
+  <nav class="nav" aria-label="Điều hướng hoạt động">
+    <button type="button" data-panel="map" aria-current="step">1. Khám phá bản đồ</button>
+    <button type="button" data-panel="match">2. Ghép đúng – Hiểu nhanh</button>
+    <button type="button" data-panel="challenge">3. Thử thách cuối</button>
+  </nav>
+
+  <section class="panel active" id="panel-map" aria-labelledby="map-title">
+    <div class="eyebrow">Phần 1 · Quan sát và khám phá</div>
+    <h2 id="map-title">Khám phá bản đồ</h2>
+    <p class="intro">Chọn một khu vực để tìm hiểu các dòng sông đã góp phần tạo điều kiện cho cư dân cổ đại sinh sống và phát triển.</p>
+    <div class="map-layout">
+      <div class="map-frame">
+        <img src="assets/ban-do-ai-cap-luong-ha.png" alt="Bản đồ lịch sử khu vực Ai Cập và Lưỡng Hà cổ đại do người học cung cấp">
+        <p class="map-caption">Bản đồ gốc được giữ nguyên trạng. Chọn hai khu vực ở bảng bên cạnh để đọc thông tin.</p>
+      </div>
+      <aside>
+        <div class="region-buttons" aria-label="Chọn khu vực">
+          <button type="button" data-region="egypt" aria-pressed="false">AI CẬP</button>
+          <button type="button" data-region="mesopotamia" aria-pressed="false">LƯỠNG HÀ</button>
+        </div>
+        <div class="info-card" id="region-info" aria-live="polite">
+          <h3>Bạn hãy chọn một khu vực</h3>
+          <p>Quan sát vị trí các dòng sông trên bản đồ, sau đó chọn <strong>Ai Cập</strong> hoặc <strong>Lưỡng Hà</strong>.</p>
+        </div>
+        <p class="note">Gợi ý quan sát: nguồn nước, phù sa, đất đai và đường đi lại.</p>
+      </aside>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-match" aria-labelledby="match-title">
+    <div class="eyebrow">Phần 2 · Trò chơi tương tác</div>
+    <h2 id="match-title">Ghép đúng – Hiểu nhanh</h2>
+    <p class="intro">Bấm chọn một thẻ ở cột trái, sau đó chọn thẻ phù hợp ở cột phải. Hãy ghép đủ 4 cặp.</p>
+    <div class="game-top">
+      <span class="counter" id="match-counter" aria-live="polite">Đã hoàn thành: 0/4 cặp</span>
+      <span class="note">Chọn hai thẻ liên tiếp để ghép.</span>
+    </div>
+    <div class="match-grid">
+      <div class="match-column"><h3>Dòng sông / yếu tố tự nhiên</h3><div class="cards" id="left-cards"></div></div>
+      <div class="match-column"><h3>Khu vực / vai trò</h3><div class="cards" id="right-cards"></div></div>
+    </div>
+    <div class="feedback" id="match-feedback" aria-live="polite">Bắt đầu bằng cách chọn một thẻ bất kỳ ở cột trái.</div>
+    <div class="actions"><button type="button" class="secondary" id="reset-match">Chơi lại</button></div>
+  </section>
+
+  <section class="panel" id="panel-challenge" aria-labelledby="challenge-title">
+    <div class="eyebrow">Phần 3 · Em là nhà sử học</div>
+    <h2 id="challenge-title">Thử thách cuối</h2>
+    <p class="question">Vì sao các nền văn minh Ai Cập và Lưỡng Hà sớm hình thành bên những dòng sông lớn?</p>
+    <form id="quiz-form">
+      <div class="options">
+        <label class="option"><input type="radio" name="answer" value="A"><span><strong>A.</strong> Vì sông ngòi cung cấp nước, phù sa bồi đắp đất đai, tạo điều kiện phát triển nông nghiệp và giao thông.</span></label>
+        <label class="option"><input type="radio" name="answer" value="B"><span><strong>B.</strong> Vì cư dân không cần lao động vẫn có đủ lương thực.</span></label>
+        <label class="option"><input type="radio" name="answer" value="C"><span><strong>C.</strong> Vì sông ngòi không có ảnh hưởng đến đời sống.</span></label>
+      </div>
+      <div class="actions">
+        <button class="primary" type="submit">Kiểm tra đáp án</button>
+        <button class="secondary" type="button" id="reset-quiz">Làm lại</button>
+      </div>
+    </form>
+    <div class="feedback" id="quiz-feedback" aria-live="polite">Hãy chọn một phương án rồi nhấn “Kiểm tra đáp án”.</div>
+    <div class="conclusion" id="conclusion">
+      <strong>Kết luận</strong>
+      Nguồn nước, phù sa và đất đai thuận lợi giúp cư dân Ai Cập và Lưỡng Hà phát triển nông nghiệp, ổn định đời sống. Kết hợp với hoạt động lao động của con người, những điều kiện ấy tạo cơ sở cho sự hình thành các nền văn minh cổ đại.
+    </div>
+  </section>
+  <p class="footer">Hoạt động học tập tương tác · Lịch sử THCS</p>
+</main>
+<script>
+(() => {
+  const navButtons = [...document.querySelectorAll('.nav button')];
+  const panels = [...document.querySelectorAll('.panel')];
+  navButtons.forEach(button => button.addEventListener('click', () => {
+    navButtons.forEach(b => b.removeAttribute('aria-current'));
+    button.setAttribute('aria-current', 'step');
+    panels.forEach(panel => panel.classList.toggle('active', panel.id === `panel-${button.dataset.panel}`));
+  }));
+
+  const regionInfo = document.getElementById('region-info');
+  const regionButtons = [...document.querySelectorAll('[data-region]')];
+  const regionContent = {
+    egypt: {
+      title: 'Ai Cập – sông Nin',
+      body: '<p>Sông Nin cung cấp nước, bồi đắp phù sa và tạo điều kiện thuận lợi cho trồng trọt.</p><ul><li>Nguồn nước hỗ trợ đời sống cư dân.</li><li>Phù sa giúp đất đai thuận lợi cho nông nghiệp.</li><li>Sông còn hỗ trợ việc đi lại và giao thông.</li></ul><p>Những điều kiện ấy góp phần tạo cơ sở cho sự hình thành và phát triển văn minh Ai Cập cổ đại.</p>'
+    },
+    mesopotamia: {
+      title: 'Lưỡng Hà – sông Ti-grơ và Ơ-phơ-rát',
+      body: '<p>Hai sông Ti-grơ và Ơ-phơ-rát cung cấp nước, bồi đắp phù sa và tạo điều kiện phát triển nông nghiệp.</p><ul><li>Nguồn nước phục vụ đời sống cư dân.</li><li>Phù sa góp phần làm đất đai thuận lợi cho trồng trọt.</li><li>Sông ngòi hỗ trợ giao thông và buôn bán.</li></ul><p>Mối liên hệ giữa sông ngòi, đất đai và hoạt động của con người góp phần tạo cơ sở cho văn minh Lưỡng Hà cổ đại.</p>'
+    }
+  };
+  regionButtons.forEach(button => button.addEventListener('click', () => {
+    regionButtons.forEach(b => b.setAttribute('aria-pressed', String(b === button)));
+    const item = regionContent[button.dataset.region];
+    regionInfo.innerHTML = `<h3>${item.title}</h3>${item.body}<button type="button" class="small-btn" id="close-info">Đóng thông tin</button>`;
+    document.getElementById('close-info').addEventListener('click', () => {
+      regionButtons.forEach(b => b.setAttribute('aria-pressed', 'false'));
+      regionInfo.innerHTML = '<h3>Bạn hãy chọn một khu vực</h3><p>Quan sát vị trí các dòng sông trên bản đồ, sau đó chọn <strong>Ai Cập</strong> hoặc <strong>Lưỡng Hà</strong>.</p>';
+    });
+  }));
+
+  const pairs = [
+    {id:1,left:'Sông Nin',right:'Ai Cập'},
+    {id:2,left:'Sông Ti-grơ và sông Ơ-phơ-rát',right:'Lưỡng Hà'},
+    {id:3,left:'Phù sa và nguồn nước',right:'Thuận lợi cho trồng trọt'},
+    {id:4,left:'Sông ngòi',right:'Hỗ trợ giao thông và buôn bán'}
+  ];
+  const shuffle = arr => [...arr].sort(() => Math.random() - .5);
+  let selectedLeft = null;
+  let matched = new Set();
+  let rightOrder = [];
+  const leftContainer = document.getElementById('left-cards');
+  const rightContainer = document.getElementById('right-cards');
+  const matchFeedback = document.getElementById('match-feedback');
+  const counter = document.getElementById('match-counter');
+
+  function renderGame() {
+    leftContainer.innerHTML = '';
+    rightContainer.innerHTML = '';
+    shuffle(pairs).forEach(pair => {
+      const button = document.createElement('button');
+      button.type = 'button'; button.className = 'match-card'; button.textContent = pair.left;
+      button.dataset.id = pair.id; button.setAttribute('aria-pressed','false');
+      if (matched.has(pair.id)) { button.classList.add('matched'); button.disabled = true; button.setAttribute('aria-label', pair.left + ', đã ghép đúng'); }
+      button.addEventListener('click', () => {
+        if (matched.has(pair.id)) return;
+        selectedLeft = pair.id;
+        [...leftContainer.children].forEach(b => { b.classList.toggle('selected', b === button); b.setAttribute('aria-pressed', String(b === button)); });
+        matchFeedback.className = 'feedback';
+        matchFeedback.textContent = 'Đã chọn "' + pair.left + '". Bây giờ hãy chọn thẻ tương ứng ở cột phải.';
+      });
+      leftContainer.appendChild(button);
+    });
+    rightOrder = shuffle(pairs);
+    rightOrder.forEach(pair => {
+      const button = document.createElement('button');
+      button.type = 'button'; button.className = 'match-card'; button.textContent = pair.right;
+      button.dataset.id = pair.id;
+      if (matched.has(pair.id)) { button.classList.add('matched'); button.disabled = true; button.setAttribute('aria-label', pair.right + ', đã ghép đúng'); }
+      button.addEventListener('click', () => {
+        if (matched.has(pair.id)) return;
+        if (selectedLeft === null) {
+          matchFeedback.className = 'feedback';
+          matchFeedback.textContent = 'Hãy chọn một thẻ ở cột trái trước nhé.';
+          return;
+        }
+        if (selectedLeft === pair.id) {
+          matched.add(pair.id);
+          matchFeedback.className = 'feedback good';
+          matchFeedback.textContent = 'Chính xác! Em đã ghép đúng một cặp.';
+          selectedLeft = null;
+          counter.textContent = `Đã hoàn thành: ${matched.size}/4 cặp`;
+          renderGame();
+          if (matched.size === 4) {
+            matchFeedback.className = 'feedback good';
+            matchFeedback.textContent = 'Tuyệt vời! Em đã ghép đúng cả 4 cặp kiến thức.';
+          }
+        } else {
+          selectedLeft = null;
+          [...leftContainer.children].forEach(b => { b.classList.remove('selected'); b.setAttribute('aria-pressed','false'); });
+          matchFeedback.className = 'feedback bad';
+          matchFeedback.textContent = 'Chưa đúng cặp rồi. Em thử suy nghĩ lại nhé; các cặp đã đúng vẫn được giữ nguyên.';
+        }
+      });
+      rightContainer.appendChild(button);
+    });
+  }
+  document.getElementById('reset-match').addEventListener('click', () => {
+    matched = new Set(); selectedLeft = null; counter.textContent = 'Đã hoàn thành: 0/4 cặp';
+    matchFeedback.className = 'feedback'; matchFeedback.textContent = 'Bắt đầu bằng cách chọn một thẻ bất kỳ ở cột trái.';
+    renderGame();
+  });
+  renderGame();
+
+  const quizForm = document.getElementById('quiz-form');
+  const quizFeedback = document.getElementById('quiz-feedback');
+  const conclusion = document.getElementById('conclusion');
+  quizForm.addEventListener('submit', event => {
+    event.preventDefault();
+    const answer = new FormData(quizForm).get('answer');
+    if (!answer) {
+      quizFeedback.className = 'feedback bad';
+      quizFeedback.textContent = 'Em hãy chọn một phương án trước khi kiểm tra nhé.';
+      conclusion.classList.remove('show');
+      return;
+    }
+    if (answer === 'A') {
+      quizFeedback.className = 'feedback good';
+      quizFeedback.textContent = 'Chính xác! Nguồn nước và phù sa tạo điều kiện cho nông nghiệp, còn sông ngòi hỗ trợ giao thông.';
+      conclusion.classList.add('show');
+    } else {
+      quizFeedback.className = 'feedback bad';
+      quizFeedback.textContent = answer === 'B'
+        ? 'Chưa đúng. Hãy nghĩ xem cư dân có cần lao động để trồng trọt và tạo ra lương thực không.'
+        : 'Chưa đúng. Hãy xem lại vai trò của nước, phù sa và sông ngòi đối với đời sống.';
+      conclusion.classList.remove('show');
+    }
+  });
+  document.getElementById('reset-quiz').addEventListener('click', () => {
+    quizForm.reset(); conclusion.classList.remove('show');
+    quizFeedback.className = 'feedback';
+    quizFeedback.textContent = 'Hãy chọn một phương án rồi nhấn “Kiểm tra đáp án”.';
+  });
+})();
+</script>
+</body>
+</html>
